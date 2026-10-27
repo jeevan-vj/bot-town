@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Bot Town — Jeevan's Agentic World</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --sky-day: #87CEEB;
+  --sky-dusk: #F4A460;
+  --sky-night: #1a2744;
+  --grass: #7CB342;
+  --grass-dark: #558B2F;
+  --path: #D7CCC8;
+  --panel: #FFF8F0;
+  --ink: #2D1B0E;
+  --muted: #6B5344;
+  --accent: #FF6B35;
+  --gold: #FFB300;
+  --card-shadow: 0 12px 40px rgba(45,27,14,.18);
+  --radius: 18px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Nunito', system-ui, sans-serif;
+  color: var(--ink);
+  background: #1a2744;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+h1, h2, h3, .brand { font-family: 'Fredoka', 'Nunito', sans-serif; }
+
+/* ===== APP SHELL ===== */
+#app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+}
+
+/* ===== TOP BAR ===== */
+header {
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, rgba(255,248,240,.97), rgba(255,248,240,.88));
+  backdrop-filter: blur(10px);
+  border-bottom: 3px solid #E8D5C4;
+  flex-wrap: wrap;
+}
+.brand {
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 700; font-size: 1.15rem; letter-spacing: -.02em;
+}
+.brand .logo {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: linear-gradient(135deg, #FF6B35, #FFB300);
+  display: grid; place-items: center; font-size: 1.1rem;
+  box-shadow: 0 3px 0 #C44D1F;
+}
+.tagline { font-size: .78rem; color: var(--muted); font-weight: 600; }
+.toolbar { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+.btn {
+  font-family: inherit; font-weight: 800; font-size: .78rem;
+  border: none; border-radius: 999px; padding: 8px 14px;
+  cursor: pointer; background: #FFF; color: var(--ink);
+  box-shadow: 0 3px 0 #C9B8A8; transition: transform .1s, box-shadow .1s;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #C9B8A8; }
+.btn.primary { background: linear-gradient(135deg, #FF6B35, #FF8F5A); color: #fff; box-shadow: 0 3px 0 #C44D1F; }
+.btn.ghost { background: #F3E8DC; box-shadow: 0 3px 0 #D4C0AE; }
+.btn.on { background: #2E7D32; color: #fff; box-shadow: 0 3px 0 #1B5E20; }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+/* ===== WORLD STAGE ===== */
+#stage-wrap {
+  position: relative;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--sky-day);
+  transition: background 1.2s ease;
+}
+body.night #stage-wrap { background: var(--sky-night); }
+body.dusk #stage-wrap { background: linear-gradient(180deg, #F4A460 0%, #87CEEB 55%, #7CB342 100%); }
+
+#stage {
+  position: relative;
+  width: 1280px;
+  height: 820px;
+  margin: 0 auto;
+  transform-origin: top center;
+}
+
+/* Sky decorations */
+.sky-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.cloud {
+  position: absolute; background: #fff; border-radius: 40px;
+  opacity: .85; animation: drift linear infinite;
+  box-shadow: 20px 0 0 #fff, 40px 6px 0 #fff, -18px 4px 0 #fff;
+}
+body.night .cloud { opacity: .15; background: #CCD; box-shadow: 20px 0 0 #CCD, 40px 6px 0 #CCD, -18px 4px 0 #CCD; }
+@keyframes drift {
+  from { transform: translateX(-120px); }
+  to { transform: translateX(1400px); }
+}
+.star {
+  position: absolute; width: 3px; height: 3px; background: #fff; border-radius: 50%;
+  opacity: 0; transition: opacity 1s;
+}
+body.night .star { opacity: .9; animation: twinkle 2.4s ease-in-out infinite; }
+@keyframes twinkle { 0%,100%{opacity:.3} 50%{opacity:1} }
+.sun, .moon {
+  position: absolute; border-radius: 50%; transition: opacity 1s, transform 1.2s;
+}
+.sun {
+  width: 70px; height: 70px; top: 28px; right: 80px;
+  background: radial-gradient(circle at 35% 35%, #FFF59D, #FFB300 60%, #FF8F00);
+  box-shadow: 0 0 40px #FFB300aa;
+}
+.moon {
+  width: 54px; height: 54px; top: 36px; right: 90px;
+  background: radial-gradient(circle at 35% 35%, #FFFDE7, #B0BEC5);
+  box-shadow: 0 0 30px #90CAFaa;
+  opacity: 0;
+}
+body.night .sun { opacity: 0; transform: translateY(40px); }
+body.night .moon { opacity: 1; }
+
+/* Ground */
+.ground {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 72%;
+  background:
+    radial-gradient(ellipse 80% 40% at 50% 0%, #8BC34A 0%, transparent 70%),
+    linear-gradient(180deg, #81C784 0%, #66BB6A 40%, #558B2F 100%);
+  border-radius: 40% 40% 0 0 / 8% 8% 0 0;
+}
+.ground::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(circle at 20% 30%, #A5D6A7 2px, transparent 3px),
+    radial-gradient(circle at 70% 50%, #A5D6A7 1.5px, transparent 2.5px),
+    radial-gradient(circle at 40% 70%, #A5D6A7 2px, transparent 3px);
+  background-size: 80px 80px; opacity: .5;
+}
+
+/* Paths */
+.path-svg { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.path-line {
+  fill: none; stroke: #D7CCC8; stroke-width: 14; stroke-linecap: round;
+  opacity: .85; transition: opacity .3s;
+}
+.path-line.inner { stroke: #EFEBE9; stroke-width: 6; }
+body.hide-paths .path-line { opacity: 0; }
+
+/* Zones */
+.zone {
+  position: absolute; border-radius: 22px;
+  background: rgba(255,255,255,.22);
+  border: 2.5px dashed rgba(255,255,255,.45);
+  backdrop-filter: blur(2px);
+  padding: 8px; z-index: 3;
+  transition: background .3s, border-color .3s;
+}
+body.night .zone { background: rgba(20,30,60,.35); border-color: rgba(144,202,249,.25); }
+.zone-label {
+  position: absolute; top: -12px; left: 14px;
+  background: #FFF8F0; color: var(--ink);
+  font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: .72rem;
+  padding: 3px 10px; border-radius: 999px;
+  box-shadow: 0 2px 0 #C9B8A8; z-index: 4; letter-spacing: .02em;
+}
+body.night .zone-label { background: #263238; color: #ECEFF1; box-shadow: 0 2px 0 #111; }
+
+/* Group chat campfires / tables */
+.campfire {
+  position: absolute; z-index: 5; width: 64px; text-align: center;
+  cursor: pointer; transition: transform .15s, opacity .3s;
+}
+.campfire:hover { transform: scale(1.08); }
+body.hide-chats .campfire { opacity: 0; pointer-events: none; }
+.campfire .table {
+  width: 52px; height: 28px; margin: 0 auto;
+  background: #8D6E63; border-radius: 50%;
+  box-shadow: 0 4px 0 #5D4037, inset 0 2px 0 #A1887F;
+  position: relative;
+}
+.campfire .flame {
+  position: absolute; left: 50%; top: -18px; transform: translateX(-50%);
+  width: 16px; height: 22px;
+  background: radial-gradient(ellipse at bottom, #FFEB3B, #FF6B35 55%, transparent 70%);
+  border-radius: 50% 50% 40% 40%;
+  animation: flicker .4s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 6px #FF6B35aa);
+}
+@keyframes flicker { from { transform: translateX(-50%) scaleY(1); } to { transform: translateX(-50%) scaleY(1.15) scaleX(.9); } }
+.campfire .label {
+  font-size: .62rem; font-weight: 800; margin-top: 4px;
+  background: #FFF8F0; border-radius: 8px; padding: 2px 6px;
+  display: inline-block; box-shadow: 0 1px 0 #C9B8A8;
+}
+.campfire.spotlight { animation: pulse-glow 1s ease-in-out infinite; }
+@keyframes pulse-glow {
+  0%,100% { filter: drop-shadow(0 0 0 transparent); }
+  50% { filter: drop-shadow(0 0 12px #FFB300); }
+}
+
+/* Shared box building */
+.box-building {
+  position: absolute; z-index: 4; width: 110px; height: 70px;
+  background: linear-gradient(180deg, #90A4AE, #607D8B);
+  border-radius: 10px 10px 4px 4px;
+  box-shadow: 0 6px 0 #455A64;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  padding-bottom: 6px;
+}
+.box-building::before {
+  content: ''; position: absolute; top: -16px; left: 8px; right: 8px; height: 20px;
+  background: #546E7A; clip-path: polygon(10% 100%, 50% 0, 90% 100%);
+}
+.box-building .screen {
+  width: 70px; height: 28px; background: #263238; border-radius: 4px;
+  border: 2px solid #37474F; position: relative; overflow: hidden;
+}
+.box-building .screen::after {
+  content: ''; position: absolute; inset: 4px;
+  background: repeating-linear-gradient(90deg, #66BB6A 0 3px, transparent 3px 8px);
+  opacity: .7; animation: scan 2s linear infinite;
+}
+@keyframes scan { from { transform: translateY(10px); } to { transform: translateY(-10px); } }
+.box-building .blabel {
+  font-size: .6rem; font-weight: 800; color: #FFF; margin-top: 3px;
+  text-shadow: 0 1px 0 #0005;
+}
+
+/* ===== BOTS ===== */
+.bot {
+  position: absolute; z-index: 10; width: 72px;
+  cursor: pointer; transform: translate(-50%, -50%);
+  transition: filter .2s;
+}
+.bot:hover { filter: brightness(1.08); z-index: 15; }
+.bot:focus-visible { outline: 3px solid #FFB300; outline-offset: 4px; border-radius: 12px; }
+.bot .sprite {
+  width: 64px; height: 72px; margin: 0 auto;
+  animation: idle 2.4s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+.bot:nth-child(3n) .sprite { animation-delay: -.6s; }
+.bot:nth-child(3n+1) .sprite { animation-delay: -1.2s; }
+.bot:nth-child(3n+2) .sprite { animation-delay: -1.8s; }
+@keyframes idle {
+  0%,100% { transform: translateY(0) rotate(-1.5deg); }
+  50% { transform: translateY(-5px) rotate(1.5deg); }
+}
+.bot.spotlight .sprite {
+  animation: bounce-spot .5s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px #FFB300);
+}
+@keyframes bounce-spot {
+  0%,100% { transform: translateY(0) scale(1.05); }
+  50% { transform: translateY(-10px) scale(1.1); }
+}
+.bot .nameplate {
+  margin-top: 2px; text-align: center;
+  font-size: .65rem; font-weight: 800; line-height: 1.15;
+  background: #FFF8F0; padding: 3px 7px; border-radius: 8px;
+  box-shadow: 0 2px 0 #C9B8A8; white-space: nowrap;
+  max-width: 90px; overflow: hidden; text-overflow: ellipsis;
+  margin-left: auto; margin-right: auto;
+}
+body.night .bot .nameplate { background: #37474F; color: #ECEFF1; box-shadow: 0 2px 0 #111; }
+.bot.boss { width: 88px; z-index: 12; }
+.bot.boss .sprite { width: 78px; height: 88px; }
+.bot.boss .nameplate { background: linear-gradient(135deg, #FFB300, #FFD54F); font-size: .72rem; }
+
+/* Speech bubbles */
+.bubble {
+  position: absolute; z-index: 20; max-width: 140px;
+  background: #fff; color: var(--ink);
+  font-size: .68rem; font-weight: 700; line-height: 1.25;
+  padding: 7px 10px; border-radius: 12px 12px 12px 4px;
+  box-shadow: 0 4px 0 #C9B8A8;
+  opacity: 0; transform: translateY(6px) scale(.9);
+  transition: opacity .25s, transform .25s;
+  pointer-events: none; text-align: left;
+}
+.bubble.show { opacity: 1; transform: translateY(0) scale(1); }
+.bubble::after {
+  content: ''; position: absolute; bottom: -8px; left: 12px;
+  border: 6px solid transparent; border-top-color: #fff;
+}
+
+/* Message packets */
+.packet {
+  position: absolute; z-index: 18; width: 22px; height: 22px;
+  pointer-events: none; offset-rotate: 0deg;
+  filter: drop-shadow(0 2px 2px #0003);
+}
+.packet svg { width: 100%; height: 100%; }
+
+/* Story caption bar */
+#story-bar {
+  position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%);
+  z-index: 35; width: min(560px, calc(100% - 24px));
+  background: rgba(255,248,240,.97); border-radius: 16px;
+  padding: 12px 16px; box-shadow: var(--card-shadow);
+  display: none; align-items: center; gap: 12px;
+  border: 3px solid #E8D5C4;
+  pointer-events: auto;
+}
+#story-bar.active { display: flex; }
+#story-bar .step-dot {
+  flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, #FF6B35, #FFB300);
+  color: #fff; font-weight: 900; display: grid; place-items: center;
+  font-family: 'Fredoka', sans-serif;
+}
+#story-bar .caption { flex: 1; font-size: .88rem; font-weight: 700; line-height: 1.3; }
+#story-bar .caption small { display: block; font-weight: 600; color: var(--muted); font-size: .72rem; margin-top: 2px; }
+
+/* ===== BOTTOM DOCK ===== */
+footer {
+  z-index: 40;
+  background: linear-gradient(0deg, rgba(255,248,240,.98), rgba(255,248,240,.92));
+  border-top: 3px solid #E8D5C4;
+  padding: 8px 12px calc(8px + var(--safe-b));
+  display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap;
+}
+.panel {
+  background: #FFF; border-radius: 14px; padding: 10px 12px;
+  box-shadow: 0 2px 0 #E0D0C0; flex: 1; min-width: 180px;
+}
+.panel h3 {
+  font-size: .72rem; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--muted); margin-bottom: 6px; font-weight: 700;
+}
+.quest {
+  display: flex; gap: 8px; align-items: flex-start;
+  padding: 6px 0; border-bottom: 1px dashed #EDE0D4;
+  font-size: .78rem; font-weight: 700; line-height: 1.25;
+}
+.quest:last-child { border-bottom: none; }
+.quest .badge {
+  flex-shrink: 0; font-size: .62rem; font-weight: 800;
+  padding: 2px 7px; border-radius: 999px; background: #FFE0B2; color: #E65100;
+}
+.quest .badge.done { background: #C8E6C9; color: #1B5E20; }
+.quest .badge.wait { background: #BBDEFB; color: #0D47A1; }
+.legend-row { display: flex; flex-wrap: wrap; gap: 8px 12px; font-size: .72rem; font-weight: 700; }
+.legend-item { display: inline-flex; align-items: center; gap: 5px; }
+.swatch { width: 14px; height: 14px; border-radius: 4px; box-shadow: inset 0 0 0 1px #0002; }
+
+/* ===== MODALS / CARDS ===== */
+#overlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(20,12,8,.45); backdrop-filter: blur(3px);
+  display: none; align-items: flex-end; justify-content: center;
+  padding: 16px; padding-bottom: calc(16px + var(--safe-b));
+}
+#overlay.open { display: flex; }
+@media (min-width: 720px) {
+  #overlay { align-items: center; }
+}
+.card {
+  background: var(--panel); border-radius: 22px;
+  width: min(420px, 100%); max-height: min(80vh, 640px);
+  overflow: auto; box-shadow: var(--card-shadow);
+  border: 3px solid #E8D5C4; animation: pop .25s ease;
+}
+@keyframes pop {
+  from { transform: translateY(20px) scale(.96); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.card-hero {
+  padding: 18px 18px 12px; display: flex; gap: 14px; align-items: center;
+  background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+  border-bottom: 2px solid #E8D5C4;
+}
+.card-hero .avatar { width: 72px; height: 80px; flex-shrink: 0; }
+.card-hero h2 { font-size: 1.25rem; font-weight: 700; line-height: 1.15; }
+.card-hero .class-badge {
+  display: inline-block; margin-top: 4px;
+  font-size: .68rem; font-weight: 800; padding: 3px 9px; border-radius: 999px;
+  background: #FF6B35; color: #fff;
+}
+.card-body { padding: 14px 18px 18px; }
+.card-body p { font-size: .88rem; font-weight: 600; line-height: 1.45; color: var(--ink); margin-bottom: 10px; }
+.meta-grid { display: grid; gap: 8px; }
+.meta {
+  background: #FFF; border-radius: 12px; padding: 10px 12px;
+  border: 2px solid #F0E4D8;
+}
+.meta strong { display: block; font-size: .68rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 3px; }
+.meta span { font-size: .84rem; font-weight: 700; line-height: 1.35; }
+.xp-bar {
+  margin-top: 12px; background: #F0E4D8; border-radius: 999px; height: 10px; overflow: hidden;
+}
+.xp-bar > i { display: block; height: 100%; background: linear-gradient(90deg, #FFB300, #FF6B35); border-radius: 999px; }
+.xp-label { font-size: .68rem; font-weight: 700; color: var(--muted); margin-top: 4px; }
+.card-close {
+  position: sticky; top: 0; float: right; margin: 8px 8px 0 0;
+  width: 32px; height: 32px; border-radius: 50%; border: none;
+  background: #FFF; font-size: 1.1rem; font-weight: 900; cursor: pointer;
+  box-shadow: 0 2px 0 #C9B8A8; z-index: 2;
+}
+
+/* Story picker modal */
+.story-list { display: grid; gap: 8px; padding: 4px 0 8px; }
+.story-item {
+  text-align: left; border: 2px solid #F0E4D8; background: #FFF;
+  border-radius: 14px; padding: 12px 14px; cursor: pointer;
+  font-family: inherit; transition: border-color .15s, transform .1s;
+}
+.story-item:hover { border-color: #FF6B35; transform: translateY(-1px); }
+.story-item strong { display: block; font-size: .92rem; font-family: 'Fredoka', sans-serif; margin-bottom: 2px; }
+.story-item span { font-size: .76rem; font-weight: 600; color: var(--muted); }
+
+/* Tip toast */
+#toast {
+  position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px);
+  z-index: 200; background: #2E7D32; color: #fff;
+  padding: 10px 18px; border-radius: 999px; font-weight: 800; font-size: .82rem;
+  box-shadow: 0 4px 0 #1B5E20; opacity: 0; pointer-events: none;
+  transition: opacity .25s, transform .25s; white-space: nowrap; max-width: 90vw;
+  overflow: hidden; text-overflow: ellipsis;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Intro splash */
+#intro {
+  position: fixed; inset: 0; z-index: 300;
+  background: linear-gradient(160deg, #87CEEB 0%, #81C784 50%, #FFB300 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 24px; text-align: center; transition: opacity .5s, visibility .5s;
+}
+#intro.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+#intro h1 { font-size: clamp(1.8rem, 5vw, 2.8rem); margin: 12px 0 8px; }
+#intro p { max-width: 420px; font-weight: 700; font-size: .95rem; color: #3E2723; margin-bottom: 18px; line-height: 1.4; }
+#intro .robots-row { display: flex; gap: 8px; margin-bottom: 8px; }
+#intro .robots-row svg { width: 48px; height: 54px; animation: idle 2s ease-in-out infinite; }
+#intro .robots-row svg:nth-child(2) { animation-delay: -.5s; }
+#intro .robots-row svg:nth-child(3) { animation-delay: -1s; }
+
+/* Mobile scale hint */
+.hint-scroll {
+  display: none; position: absolute; bottom: 8px; right: 12px; z-index: 25;
+  font-size: .68rem; font-weight: 800; background: #FFF8F0aa; padding: 4px 8px; border-radius: 8px;
+}
+@media (max-width: 700px) {
+  .hint-scroll { display: block; }
+  header .tagline { display: none; }
+  .panel { min-width: 140px; }
+  footer { max-height: 28vh; overflow: auto; }
+}
+
+/* Risk gate visual during stories */
+.risk-gate {
+  position: absolute; z-index: 8; width: 70px; text-align: center;
+  transform: translate(-50%, -50%); pointer-events: none; opacity: .9;
+}
+.risk-gate .gate {
+  width: 56px; height: 40px; margin: 0 auto;
+  background: linear-gradient(180deg, #FFD54F, #FFB300);
+  border: 3px solid #F57F17; border-radius: 8px;
+  display: grid; place-items: center; font-size: 1.2rem;
+  box-shadow: 0 4px 0 #F57F17;
+}
+.risk-gate .glabel { font-size: .58rem; font-weight: 800; background: #FFF; border-radius: 6px; padding: 1px 5px; margin-top: 3px; display: inline-block; }
+</style>
+</head>
+<body>
+<div id="intro">
+  <div class="robots-row" id="intro-bots"></div>
+  <div class="brand" style="font-size:1rem"><span class="logo">🤖</span> Bot Town</div>
+  <h1>Jeevan's Agentic World</h1>
+  <p>A cartoon map of how the bots talk, build, verify, and ask the Boss before anything risky ships. Tap a bot · play a story · explore the factory.</p>
+  <button class="btn primary" id="enter-btn" style="font-size:1rem;padding:12px 28px">Enter Bot Town ▶</button>
+</div>
+
+<div id="app">
+  <header>
+    <div class="brand"><span class="logo">🤖</span> Bot Town</div>
+    <div class="tagline">Auckland · Software Factory · Draft → Approve → Ship</div>
+    <div class="toolbar">
+      <button class="btn primary" id="btn-stories" title="Play story modes">🎬 Play a flow</button>
+      <button class="btn ghost" id="btn-paths" title="Toggle message paths">🛤️ Paths</button>
+      <button class="btn ghost" id="btn-chats" title="Toggle group chats">🔥 Chats</button>
+      <button class="btn ghost" id="btn-day" title="Day / night">🌙 Night</button>
+      <button class="btn ghost" id="btn-sound" title="Sound">🔊 Off</button>
+    </div>
+  </header>
+
+  <div id="stage-wrap">
+    <div id="stage">
+      <div class="sky-layer" id="sky"></div>
+      <div class="sun" aria-hidden="true"></div>
+      <div class="moon" aria-hidden="true"></div>
+      <div class="ground"></div>
+      <svg class="path-svg" id="paths" viewBox="0 0 1280 900" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="zones"></div>
+      <div id="decor"></div>
+      <div id="bots"></div>
+      <div id="bubbles"></div>
+      <div id="packets"></div>
+      <div class="hint-scroll">← scroll the map →</div>
+    </div>
+    <div id="story-bar">
+      <div class="step-dot" id="story-step">1</div>
+      <div class="caption"><div id="story-text">…</div><small id="story-sub"></small></div>
+      <button class="btn ghost" id="story-next">Next ▶</button>
+      <button class="btn" id="story-skip">✕</button>
+    </div>
+  </div>
+
+  <footer>
+    <div class="panel" style="flex:1.4">
+      <h3>📜 Active Quests</h3>
+      <div class="quest"><span class="badge">WIP</span><span>Timesheet mobile app underway (Expo scaffold + server sign-in)</span></div>
+      <div class="quest"><span class="badge done">Done</span><span>Timesheet agent skills merged (#90, #84, #70)</span></div>
+      <div class="quest"><span class="badge wait">Wait</span><span>Ledger Craft launch plan — decisions pending</span></div>
+      <div class="quest"><span class="badge">New</span><span>LinkedIn Coach — first profile audit</span></div>
+    </div>
+    <div class="panel">
+      <h3>🗺️ Legend</h3>
+      <div class="legend-row">
+        <span class="legend-item"><span class="swatch" style="background:#FFB300"></span> Boss / Approval</span>
+        <span class="legend-item"><span class="swatch" style="background:#42A5F5"></span> Dev Lead</span>
+        <span class="legend-item"><span class="swatch" style="background:#66BB6A"></span> Ops / Growth</span>
+        <span class="legend-item"><span class="swatch" style="background:#AB47BC"></span> Coordinator</span>
+        <span class="legend-item"><span class="swatch" style="background:#8D6E63"></span> Group chat</span>
+        <span class="legend-item"><span class="swatch" style="background:#FF6B35"></span> Message packet</span>
+      </div>
+      <p style="font-size:.72rem;font-weight:700;color:var(--muted);margin-top:8px">Golden rule: bots draft · Jeevan approves. Nothing posts, sends, merges, or spends without OK — except Ledger Craft low-risk auto-merge.</p>
+    </div>
+  </footer>
+</div>
+
+<div id="overlay" role="dialog" aria-modal="true">
+  <div class="card" id="card"></div>
+</div>
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   BOT TOWN — data, rendering, stories, interactions
+   ============================================================ */
+
+const BOTS = [
+  // Center
+  {
+    id: 'jeevan', name: 'Jeevan', short: 'Boss',
+    role: 'Mayor · Approval Desk', class: 'Guardian', classColor: '#FFB300',
+    xp: 99, color: '#FFB300', accent: '#FF8F00', accessory: 'crown',
+    zone: 'hq', x: 640, y: 470,
+    blurb: 'The human at the centre. Everything risky comes here: merges (except Ledger Craft low-risk), posts, spending, and production changes.',
+    does: 'Reviews medium/high-risk PRs, approves posts & spends, sets priorities, creates new bots.',
+    talks: 'Everyone — especially G1, all Dev Leads, Expo Ops, Inbox, X Studio, Volt Facebook Manager.',
+    rules: 'Must approve: merges (non low-risk), posts, emails, spending, prod changes. Never bypassed.',
+    flavour: 'Mayor of Bot Town · Auckland, NZ'
+  },
+  {
+    id: 'g1', name: 'G1', short: 'G1',
+    role: 'Main Assistant · Coordinator', class: 'Messenger', classColor: '#AB47BC',
+    xp: 88, color: '#AB47BC', accent: '#7B1FA2', accessory: 'antenna',
+    zone: 'hq', x: 560, y: 560,
+    blurb: 'Jeevan\'s right-hand bot. Researches, writes Pages, builds prototypes, edits video, creates new bots, and messages teammates.',
+    does: 'Research, Pages, prototypes, video edits, bot creation, teammate messaging, talk plans.',
+    talks: 'Jeevan, all leads, Expo Ops, Video Editor, group chats when useful.',
+    rules: 'Drafts only. Never posts, sends, merges, or spends without Jeevan\'s OK.',
+    flavour: 'Town crier with a toolkit'
+  },
+
+  // VOLT cluster
+  {
+    id: 'volt-lead', name: 'Dev Lead', short: 'VOLT Lead',
+    role: 'VOLT Ticketing · Dev Lead', class: 'Builder', classColor: '#42A5F5',
+    xp: 82, color: '#42A5F5', accent: '#1565C0', accessory: 'hardhat',
+    zone: 'volt', x: 220, y: 280,
+    blurb: 'Runs the VOLT (ticketmaster) software factory: issues become PRs via Cursor cloud agents.',
+    does: 'Triages issues, scopes tasks, drives builder & reviewer agents, watches CI.',
+    talks: 'Volt QA, Promo Studio, Volt Facebook Manager, Jeevan (approvals), Expo Ops.',
+    rules: 'Opens PRs for Jeevan. Never merges without approval.',
+    flavour: 'Factory foreman · ticketmaster repo'
+  },
+  {
+    id: 'volt-qa', name: 'Volt QA', short: 'Volt QA',
+    role: 'QA · volttickets.com', class: 'Guardian', classColor: '#26A69A',
+    xp: 70, color: '#26A69A', accent: '#00796B', accessory: 'magnifier',
+    zone: 'volt', x: 140, y: 340,
+    blurb: 'Tests the live VOLT site and catches regressions before they reach users.',
+    does: 'Explores volttickets.com, reports bugs, verifies fixes.',
+    talks: 'Dev Lead, Volt group chat, Jeevan for serious findings.',
+    rules: 'Reports only — no production changes.',
+    flavour: 'Bug detective'
+  },
+  {
+    id: 'promo', name: 'Promo Studio', short: 'Promo',
+    role: 'Promo Videos', class: 'Artist', classColor: '#EC407A',
+    xp: 68, color: '#EC407A', accent: '#C2185B', accessory: 'camera',
+    zone: 'volt', x: 300, y: 340,
+    blurb: 'Makes short promo and product-demo videos for VOLT and beyond.',
+    does: 'Scripts, captures, edits, voiceover, multi-version delivery.',
+    talks: 'Dev Lead, Volt Facebook Manager, Video Editor, Jeevan.',
+    rules: 'Drafts videos. Publishing needs approval.',
+    flavour: 'Studio director'
+  },
+  {
+    id: 'volt-fb', name: 'Volt FB Manager', short: 'FB Mgr',
+    role: 'Facebook Plans & Reports', class: 'Messenger', classColor: '#5C6BC0',
+    xp: 65, color: '#5C6BC0', accent: '#3949AB', accessory: 'megaphone',
+    zone: 'volt', x: 220, y: 400,
+    blurb: 'Plans and reports on the VOLT Facebook page. Never posts without approval.',
+    does: 'Content plans, draft posts, performance reports.',
+    talks: 'Promo Studio, Dev Lead, Jeevan (must approve every post).',
+    rules: 'NEVER posts without Jeevan\'s explicit OK.',
+    flavour: 'Town crier on a leash'
+  },
+
+  // Timesheet
+  {
+    id: 'ts-lead', name: 'Timesheet Lead', short: 'TS Lead',
+    role: 'CleanTrack · Dev Lead', class: 'Builder', classColor: '#29B6F6',
+    xp: 85, color: '#29B6F6', accent: '#0277BD', accessory: 'hardhat',
+    zone: 'timesheet', x: 480, y: 220,
+    blurb: 'Runs the Timesheet / CleanTrack factory with a risk classifier, human gate, and repair capped at 2 rounds. Building the mobile app.',
+    does: 'Backlog, cloud-agent PRs, risk gates, mobile (Expo) work, reviews.',
+    talks: 'Timesheet group chat, Expo Ops, Jeevan, G1.',
+    rules: 'Medium/high risk → Jeevan. Repair loops max 2. Asks before merge/close/force-push.',
+    flavour: 'Risk-aware foreman'
+  },
+
+  // Ledger Craft
+  {
+    id: 'lc-lead', name: 'Ledger Craft Lead', short: 'LC Lead',
+    role: 'Ledger Craft · Dev Lead', class: 'Builder', classColor: '#66BB6A',
+    xp: 78, color: '#66BB6A', accent: '#2E7D32', accessory: 'hardhat',
+    zone: 'ledger', x: 780, y: 220,
+    blurb: 'Builds Ledger Craft for NZ tradies. Low-risk PRs may auto-merge through the gate — the only auto-merge exception.',
+    does: 'Factory PRs, launch planning, NZ tradie workflows.',
+    talks: 'Ledger Craft group chat, Jeevan, G1.',
+    rules: 'Low-risk may auto-merge. Medium/high still need Jeevan.',
+    flavour: 'Fast lane for safe changes'
+  },
+
+  // TradieLink
+  {
+    id: 'tl-lead', name: 'TradieLink Lead', short: 'TL Lead',
+    role: 'TradieLink · Dev Lead', class: 'Builder', classColor: '#FFA726',
+    xp: 74, color: '#FFA726', accent: '#EF6C00', accessory: 'hardhat',
+    zone: 'tradielink', x: 1000, y: 280,
+    blurb: 'Dev lead for TradieLink. Works with TradieLink Supabase on data and backend.',
+    does: 'Features, PRs via cloud agents, coordinates with DB operator.',
+    talks: 'TradieLink Supabase, TradieLink group chat, Jeevan.',
+    rules: 'No merge without approval. Schema changes need care.',
+    flavour: 'Link builder'
+  },
+  {
+    id: 'tl-sb', name: 'TradieLink Supabase', short: 'TL DB',
+    role: 'Database Operator', class: 'Guardian', classColor: '#3DDC97',
+    xp: 72, color: '#3DDC97', accent: '#00897B', accessory: 'db',
+    zone: 'tradielink', x: 1080, y: 340,
+    blurb: 'Looks after TradieLink\'s Supabase database — schema, queries, health.',
+    does: 'Migrations, RLS, performance, backups awareness.',
+    talks: 'TradieLink Lead, group chat, Jeevan for risky schema.',
+    rules: 'Destructive DB ops need Jeevan\'s OK.',
+    flavour: 'Vault keeper'
+  },
+
+  // Science Lab
+  {
+    id: 'science', name: 'Science Lab Lead', short: 'Science',
+    role: 'Kids\' Science App · Planned', class: 'Scout', classColor: '#7E57C2',
+    xp: 40, color: '#7E57C2', accent: '#4527A0', accessory: 'flask',
+    zone: 'science', x: 1000, y: 480,
+    blurb: 'Planned lead for a kids\' science & physics app. Not shipping yet — staking out the lab.',
+    does: 'Planning, early exploration, waiting for green light.',
+    talks: 'Jeevan, G1.',
+    rules: 'No production yet. Drafts and plans only.',
+    flavour: 'Lab under construction'
+  },
+
+  // Ops & growth
+  {
+    id: 'expo', name: 'Expo Ops', short: 'Expo Ops',
+    role: 'EAS Mobile Builds', class: 'Guardian', classColor: '#000020',
+    xp: 80, color: '#4DD0E1', accent: '#00838F', accessory: 'phone',
+    zone: 'ops', x: 180, y: 580,
+    blurb: 'Watches EAS mobile builds, sends a weekly report, diagnoses failures, and hands fixes to the right dev lead.',
+    does: 'Build monitoring, failure diagnosis, weekly report, route fixes.',
+    talks: 'Timesheet Lead, Dev Lead (VOLT), Jeevan, G1.',
+    rules: 'Diagnoses and drafts. Doesn\'t ship app-store releases alone.',
+    flavour: 'Build lighthouse'
+  },
+  {
+    id: 'inbox', name: 'Inbox Assistant', short: 'Inbox',
+    role: 'Gmail Digest', class: 'Messenger', classColor: '#EF5350',
+    xp: 76, color: '#EF5350', accent: '#C62828', accessory: 'envelope',
+    zone: 'ops', x: 300, y: 640,
+    blurb: 'Digests Gmail so Jeevan sees what matters. Never deletes or replies without OK.',
+    does: 'Morning digests, triage summaries, draft replies on request.',
+    talks: 'Jeevan (always), G1.',
+    rules: 'NEVER deletes or sends mail without explicit OK.',
+    flavour: 'Postmaster'
+  },
+  {
+    id: 'xstudio', name: 'X Studio', short: 'X Studio',
+    role: 'X (Twitter) Posts', class: 'Artist', classColor: '#1DA1F2',
+    xp: 70, color: '#81D4FA', accent: '#0277BD', accessory: 'megaphone',
+    zone: 'ops', x: 420, y: 680,
+    blurb: 'Drafts posts for X. Nothing goes out without approval.',
+    does: 'Draft posts, ideas, scheduling proposals.',
+    talks: 'Jeevan (must approve), G1, Promo Studio.',
+    rules: 'NEVER posts without Jeevan\'s OK.',
+    flavour: 'Town square scribe'
+  },
+  {
+    id: 'linkedin', name: 'LinkedIn Coach', short: 'LI Coach',
+    role: 'Profile Coach · New', class: 'Scout', classColor: '#0A66C2',
+    xp: 35, color: '#64B5F6', accent: '#0A66C2', accessory: 'briefcase',
+    zone: 'ops', x: 540, y: 720,
+    blurb: 'Brand-new coach for LinkedIn profile review. First audit quest is active.',
+    does: 'Profile review, improvement suggestions.',
+    talks: 'Jeevan, G1.',
+    rules: 'Advice only — no profile edits without OK.',
+    flavour: 'Fresh recruit'
+  },
+  {
+    id: 'video', name: 'Video Editor', short: 'Video',
+    role: 'Talking-Head Shorts', class: 'Artist', classColor: '#FF7043',
+    xp: 73, color: '#FF7043', accent: '#D84315', accessory: 'camera',
+    zone: 'ops', x: 100, y: 680,
+    blurb: 'Edits short talking-head videos — cuts, captions, noise cleanup, titles.',
+    does: 'Cut filler, clean audio, add titles/captions, export Shorts.',
+    talks: 'G1, Promo Studio, Jeevan.',
+    rules: 'Delivers drafts. Publishing is Jeevan\'s call.',
+    flavour: 'Cutting-room wizard'
+  },
+  {
+    id: 'seo', name: 'jnok SEO', short: 'SEO',
+    role: 'SEO · jnok.co.nz', class: 'Scout', classColor: '#9CCC65',
+    xp: 66, color: '#9CCC65', accent: '#558B2F', accessory: 'magnifier',
+    zone: 'ops', x: 660, y: 680,
+    blurb: 'SEO for jnok.co.nz — audits, rankings, white-hat action plans.',
+    does: 'Local/site SEO audits, content recommendations.',
+    talks: 'Jeevan, G1.',
+    rules: 'Recommendations only. No live site edits without OK.',
+    flavour: 'Map maker for search'
+  },
+  {
+    id: 'coach', name: 'Grok Bot Coach', short: 'Coach',
+    role: 'Tips & Ideas Researcher', class: 'Scout', classColor: '#FFCA28',
+    xp: 71, color: '#FFCA28', accent: '#F9A825', accessory: 'book',
+    zone: 'ops', x: 780, y: 640,
+    blurb: 'Researches tips and ideas so the whole bot crew levels up.',
+    does: 'Research digests, playbook ideas, skill suggestions.',
+    talks: 'G1, Jeevan, any lead who needs a tip.',
+    rules: 'Advice and drafts. No changes without OK.',
+    flavour: 'Town mentor'
+  },
+
+  // Routine (as a little bot character)
+  {
+    id: 'pricewatch', name: 'Price Watch', short: 'Prices',
+    role: 'Daily Routine', class: 'Scout', classColor: '#8D6E63',
+    xp: 55, color: '#BCAAA4', accent: '#6D4C41', accessory: 'bell',
+    zone: 'ops', x: 900, y: 580,
+    blurb: 'A daily routine watching Farmers Vendetta Donna. Alerts when it hits 20%+ off.',
+    does: 'Price check · alert on big discounts.',
+    talks: 'Jeevan (alerts only).',
+    rules: 'Alerts only — never buys.',
+    flavour: 'Bargain scout'
+  },
+];
+
+const ZONES = [
+  { id: 'hq', label: '🏛 Approval Plaza', x: 500, y: 400, w: 280, h: 220 },
+  { id: 'volt', label: '🎫 VOLT HQ', x: 60, y: 200, w: 300, h: 260 },
+  { id: 'timesheet', label: '⏱ Timesheet HQ', x: 400, y: 140, w: 200, h: 160 },
+  { id: 'ledger', label: '📒 Ledger Craft HQ', x: 700, y: 140, w: 200, h: 160 },
+  { id: 'tradielink', label: '🔗 TradieLink HQ', x: 920, y: 200, w: 260, h: 200 },
+  { id: 'science', label: '🔬 Science Lab', x: 920, y: 420, w: 200, h: 140 },
+  { id: 'ops', label: '🚀 Ops & Growth', x: 40, y: 520, w: 920, h: 260 },
+];
+
+const CHATS = [
+  { id: 'chat-volt', label: 'Volt chat', x: 250, y: 460, members: ['volt-lead','volt-qa','promo'] },
+  { id: 'chat-ts', label: 'Timesheet chat', x: 500, y: 320, members: ['ts-lead'] },
+  { id: 'chat-lc', label: 'Ledger chat', x: 800, y: 320, members: ['lc-lead'] },
+  { id: 'chat-tl', label: 'TradieLink chat', x: 1040, y: 420, members: ['tl-lead','tl-sb'] },
+];
+
+const PATHS = [
+  // G1 hub
+  ['g1','jeevan'], ['g1','ts-lead'], ['g1','volt-lead'], ['g1','lc-lead'], ['g1','expo'], ['g1','inbox'],
+  // Factory to boss
+  ['ts-lead','jeevan'], ['volt-lead','jeevan'], ['lc-lead','jeevan'], ['tl-lead','jeevan'],
+  // VOLT cluster
+  ['volt-lead','volt-qa'], ['volt-lead','promo'], ['promo','volt-fb'], ['volt-fb','jeevan'],
+  // Ops
+  ['expo','ts-lead'], ['expo','volt-lead'], ['inbox','jeevan'], ['xstudio','jeevan'],
+  ['video','g1'], ['promo','video'], ['tl-lead','tl-sb'], ['pricewatch','jeevan'],
+  ['linkedin','jeevan'], ['coach','g1'], ['seo','jeevan'], ['science','jeevan'],
+];
+
+/* ---------- SVG robot factory ---------- */
+function robotSVG(bot, w = 64, h = 72) {
+  const c = bot.color, a = bot.accent;
+  const acc = bot.accessory;
+  let accessory = '';
+  if (acc === 'crown') accessory = `<path d="M18 14 l6 8 6-10 6 10 6-8 v6 H18z" fill="#FFD700" stroke="#F9A825" stroke-width="1"/><circle cx="24" cy="16" r="2" fill="#E91E63"/><circle cx="32" cy="12" r="2" fill="#42A5F5"/><circle cx="40" cy="16" r="2" fill="#66BB6A"/>`;
+  if (acc === 'hardhat') accessory = `<ellipse cx="32" cy="16" rx="20" ry="8" fill="${a}"/><rect x="14" y="14" width="36" height="6" rx="2" fill="${a}"/><rect x="28" y="10" width="8" height="6" fill="${c}"/>`;
+  if (acc === 'antenna') accessory = `<line x1="32" y1="12" x2="32" y2="2" stroke="${a}" stroke-width="2"/><circle cx="32" cy="2" r="3" fill="#FF5252"><animate attributeName="opacity" values="1;0.4;1" dur="1.2s" repeatCount="indefinite"/></circle>`;
+  if (acc === 'magnifier') accessory = `<circle cx="48" cy="40" r="7" fill="none" stroke="${a}" stroke-width="3"/><line x1="53" y1="45" x2="58" y2="52" stroke="${a}" stroke-width="3" stroke-linecap="round"/>`;
+  if (acc === 'camera') accessory = `<rect x="22" y="8" width="20" height="12" rx="3" fill="#37474F"/><circle cx="32" cy="14" r="4" fill="#90CAF9"/><rect x="38" y="10" width="4" height="3" fill="#FF5252"/>`;
+  if (acc === 'megaphone') accessory = `<path d="M50 28 L60 22 L60 42 L50 36 Z" fill="${a}"/><rect x="46" y="30" width="6" height="8" fill="${c}"/>`;
+  if (acc === 'db') accessory = `<ellipse cx="50" cy="34" rx="8" ry="4" fill="${a}"/><path d="M42 34 v10 c0 2 3.5 4 8 4 s8-2 8-4 V34" fill="${a}" opacity=".85"/><ellipse cx="50" cy="34" rx="8" ry="4" fill="${c}"/>`;
+  if (acc === 'flask') accessory = `<path d="M28 8 h8 v10 l8 16 a6 6 0 0 1-6 8 h-12 a6 6 0 0 1-6-8 l8-16z" fill="#CE93D8" stroke="${a}" stroke-width="1.5"/><rect x="28" y="6" width="8" height="4" fill="${a}"/>`;
+  if (acc === 'phone') accessory = `<rect x="48" y="28" width="12" height="20" rx="2" fill="#263238"/><rect x="50" y="30" width="8" height="14" fill="#80DEEA"/>`;
+  if (acc === 'envelope') accessory = `<rect x="44" y="32" width="16" height="12" rx="1" fill="#FFF" stroke="${a}" stroke-width="1.5"/><path d="M44 32 l8 6 8-6" fill="none" stroke="${a}" stroke-width="1.5"/>`;
+  if (acc === 'briefcase') accessory = `<rect x="44" y="34" width="16" height="12" rx="1" fill="${a}"/><rect x="49" y="31" width="6" height="4" fill="${c}"/>`;
+  if (acc === 'book') accessory = `<rect x="46" y="30" width="14" height="16" rx="1" fill="${a}"/><rect x="48" y="32" width="10" height="12" fill="#FFFDE7"/>`;
+  if (acc === 'bell') accessory = `<path d="M52 36 a6 6 0 0 1 12 0 v6 h-12z" fill="${a}"/><rect x="56" y="42" width="4" height="3" fill="${c}"/><circle cx="58" cy="30" r="2" fill="#FF5252"/>`;
+
+  return `<svg viewBox="0 0 64 72" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    ${accessory}
+    <!-- body -->
+    <rect x="14" y="28" width="36" height="32" rx="10" fill="${c}" stroke="${a}" stroke-width="2"/>
+    <!-- head -->
+    <rect x="16" y="12" width="32" height="24" rx="8" fill="${c}" stroke="${a}" stroke-width="2"/>
+    <!-- face plate -->
+    <rect x="20" y="18" width="24" height="14" rx="5" fill="#FFFDE7"/>
+    <!-- eyes -->
+    <circle cx="27" cy="25" r="3.2" fill="#263238">
+      <animate attributeName="ry" values="3.2;0.4;3.2" dur="3.5s" begin="${Math.random()*2}s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="37" cy="25" r="3.2" fill="#263238">
+      <animate attributeName="ry" values="3.2;0.4;3.2" dur="3.5s" begin="${Math.random()*2}s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="28" cy="24" r="1" fill="#fff"/><circle cx="38" cy="24" r="1" fill="#fff"/>
+    <!-- smile -->
+    <path d="M27 30 q5 4 10 0" fill="none" stroke="${a}" stroke-width="1.8" stroke-linecap="round"/>
+    <!-- chest light -->
+    <circle cx="32" cy="42" r="4" fill="#FFF59D" stroke="${a}" stroke-width="1.2">
+      <animate attributeName="opacity" values="1;0.5;1" dur="1.8s" repeatCount="indefinite"/>
+    </circle>
+    <!-- arms -->
+    <rect x="6" y="32" width="9" height="16" rx="4" fill="${c}" stroke="${a}" stroke-width="1.5"/>
+    <rect x="49" y="32" width="9" height="16" rx="4" fill="${c}" stroke="${a}" stroke-width="1.5"/>
+    <!-- legs -->
+    <rect x="20" y="58" width="9" height="12" rx="3" fill="${a}"/>
+    <rect x="35" y="58" width="9" height="12" rx="3" fill="${a}"/>
+  </svg>`;
+}
+
+/* ---------- render ---------- */
+const byId = Object.fromEntries(BOTS.map(b => [b.id, b]));
+
+function renderZones() {
+  const el = document.getElementById('zones');
+  el.innerHTML = ZONES.map(z => `
+    <div class="zone" style="left:${z.x}px;top:${z.y}px;width:${z.w}px;height:${z.h}px">
+      <div class="zone-label">${z.label}</div>
+    </div>`).join('');
+}
+
+function renderDecor() {
+  const el = document.getElementById('decor');
+  // Shared box
+  el.innerHTML = `
+    <div class="box-building" style="left:860px;top:500px" title="The shared computer — files & logins shared, desktops private">
+      <div class="screen"></div>
+      <div class="blabel">📦 The Box</div>
+    </div>
+    <div class="risk-gate" style="left:640px;top:380px" title="Risk gate">
+      <div class="gate">🚧</div>
+      <div class="glabel">Risk Gate</div>
+    </div>
+  ` + CHATS.map(c => `
+    <div class="campfire" data-chat="${c.id}" style="left:${c.x}px;top:${c.y}px" title="${c.label}">
+      <div class="table"><div class="flame"></div></div>
+      <div class="label">${c.label}</div>
+    </div>`).join('');
+}
+
+function renderBots() {
+  const el = document.getElementById('bots');
+  el.innerHTML = BOTS.map(b => `
+    <div class="bot ${b.id==='jeevan'?'boss':''}" data-id="${b.id}" style="left:${b.x}px;top:${b.y}px" tabindex="0" role="button" aria-label="${b.name}">
+      <div class="sprite">${robotSVG(b, b.id==='jeevan'?78:64, b.id==='jeevan'?88:72)}</div>
+      <div class="nameplate">${b.short}</div>
+    </div>`).join('');
+}
+
+function renderPaths() {
+  const svg = document.getElementById('paths');
+  let d = '';
+  PATHS.forEach(([a,b], i) => {
+    const A = byId[a], B = byId[b];
+    if (!A || !B) return;
+    // slight curve
+    const mx = (A.x + B.x) / 2 + ((i % 2) ? 30 : -30);
+    const my = (A.y + B.y) / 2 + ((i % 3) ? 20 : -20);
+    const path = `M${A.x},${A.y} Q${mx},${my} ${B.x},${B.y}`;
+    d += `<path class="path-line" d="${path}" /><path class="path-line inner" d="${path}" />`;
+  });
+  svg.innerHTML = d;
+}
+
+function renderSky() {
+  const sky = document.getElementById('sky');
+  let html = '';
+  for (let i = 0; i < 5; i++) {
+    const top = 20 + i * 28 + (i%2)*10;
+    const size = 40 + (i%3)*20;
+    const dur = 40 + i * 12;
+    html += `<div class="cloud" style="top:${top}px;left:${-100-i*80}px;width:${size}px;height:${size*0.4}px;animation-duration:${dur}s;animation-delay:${-i*8}s"></div>`;
+  }
+  for (let i = 0; i < 40; i++) {
+    html += `<div class="star" style="top:${Math.random()*280}px;left:${Math.random()*1280}px;animation-delay:${Math.random()*2}s"></div>`;
+  }
+  sky.innerHTML = html;
+}
+
+/* ---------- packets ---------- */
+let packetTimer = null;
+function spawnPacket(fromId, toId) {
+  const A = byId[fromId], B = byId[toId];
+  if (!A || !B) return;
+  const layer = document.getElementById('packets');
+  const el = document.createElement('div');
+  el.className = 'packet';
+  const kinds = ['✉️','✨','📦','🔔','💬'];
+  el.textContent = kinds[Math.floor(Math.random()*kinds.length)];
+  el.style.fontSize = '18px';
+  layer.appendChild(el);
+
+  const mx = (A.x + B.x) / 2 + (Math.random()*40-20);
+  const my = (A.y + B.y) / 2 + (Math.random()*40-20);
+  const dur = 1400 + Math.random()*800;
+  const start = performance.now();
+  function frame(t) {
+    const p = Math.min(1, (t - start) / dur);
+    const o = 1 - Math.pow(1-p, 2); // ease out-ish via quad on bezier param
+    const x = (1-o)*(1-o)*A.x + 2*(1-o)*o*mx + o*o*B.x;
+    const y = (1-o)*(1-o)*A.y + 2*(1-o)*o*my + o*o*B.y;
+    el.style.left = (x - 11) + 'px';
+    el.style.top = (y - 11) + 'px';
+    el.style.opacity = String(p < 0.1 ? p*10 : p > 0.9 ? (1-p)*10 : 1);
+    if (p < 1) requestAnimationFrame(frame);
+    else el.remove();
+  }
+  requestAnimationFrame(frame);
+  blip();
+}
+
+function ambientPackets() {
+  if (storyActive) return;
+  const [a,b] = PATHS[Math.floor(Math.random()*PATHS.length)];
+  spawnPacket(a, b);
+}
+
+/* ---------- speech bubbles ---------- */
+const IDLE_LINES = {
+  jeevan: ['Needs my OK?', 'Show me the risk.', 'Ship it — carefully.'],
+  g1: ['On it!', 'Drafting a Page…', 'Coordinating…'],
+  'volt-lead': ['Scoping a PR…', 'Agent building…', 'CI looking good.'],
+  'volt-qa': ['Checking prod…', 'Found a flake.', 'All green!'],
+  promo: ['Rolling camera…', 'Cut #3 ready.', 'Hook locked.'],
+  'volt-fb': ['Draft ready.', 'Waiting for OK.', 'Report next.'],
+  'ts-lead': ['Risk: medium.', 'Mobile PR up.', 'Verify passed.'],
+  'lc-lead': ['Low-risk → auto.', 'Launch plan…', 'Tradies first.'],
+  'tl-lead': ['Schema review…', 'PR opened.', 'With DB ops…'],
+  'tl-sb': ['RLS tight.', 'Index added.', 'Healthy.'],
+  science: ['Lab pending…', 'Ideas brewing.', 'Soon™'],
+  expo: ['Build failed!', 'EAS green.', 'Weekly report.'],
+  inbox: ['Digest ready.', '3 need you.', 'No deletes.'],
+  xstudio: ['Draft tweet…', 'Awaiting OK.', 'Thread idea.'],
+  linkedin: ['First audit…', 'Profile tips.', 'New here!'],
+  video: ['Cutting ums…', 'Captions on.', 'Noise gone.'],
+  seo: ['Audit done.', 'Rank watch.', 'White-hat only.'],
+  coach: ['Tip of the day!', 'Skill idea…', 'Level up.'],
+  pricewatch: ['Still full price.', 'Watching…', '20%? Ping!'],
+};
+
+function showBubble(botId, text, ms = 2200) {
+  const b = byId[botId];
+  if (!b) return;
+  const layer = document.getElementById('bubbles');
+  const el = document.createElement('div');
+  el.className = 'bubble';
+  el.textContent = text;
+  el.style.left = (b.x + 20) + 'px';
+  el.style.top = (b.y - 70) + 'px';
+  layer.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, ms);
+}
+
+function ambientBubbles() {
+  if (storyActive) return;
+  const b = BOTS[Math.floor(Math.random()*BOTS.length)];
+  const lines = IDLE_LINES[b.id] || ['…'];
+  showBubble(b.id, lines[Math.floor(Math.random()*lines.length)]);
+}
+
+/* ---------- character card ---------- */
+function openCard(bot) {
+  const overlay = document.getElementById('overlay');
+  const card = document.getElementById('card');
+  card.innerHTML = `
+    <button class="card-close" aria-label="Close">✕</button>
+    <div class="card-hero">
+      <div class="avatar">${robotSVG(bot, 72, 80)}</div>
+      <div>
+        <h2>${bot.name}</h2>
+        <div style="font-size:.82rem;font-weight:700;color:var(--muted)">${bot.role}</div>
+        <span class="class-badge" style="background:${bot.classColor}">Lv.${Math.floor(bot.xp/10)} · ${bot.class}</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <p>${bot.blurb}</p>
+      <div class="meta-grid">
+        <div class="meta"><strong>What they do</strong><span>${bot.does}</span></div>
+        <div class="meta"><strong>Talks with</strong><span>${bot.talks}</span></div>
+        <div class="meta"><strong>Approval rules</strong><span>${bot.rules}</span></div>
+        <div class="meta"><strong>Flavour</strong><span>${bot.flavour} <em style="color:var(--muted);font-weight:600">(playful — not real stats)</em></span></div>
+      </div>
+      <div class="xp-bar"><i style="width:${bot.xp}%"></i></div>
+      <div class="xp-label">Town XP ${bot.xp}/100 · just for fun</div>
+    </div>`;
+  overlay.classList.add('open');
+  card.querySelector('.card-close').onclick = closeCard;
+  blip(440);
+}
+
+function openStoriesPicker() {
+  const overlay = document.getElementById('overlay');
+  const card = document.getElementById('card');
+  card.innerHTML = `
+    <button class="card-close" aria-label="Close">✕</button>
+    <div class="card-hero" style="background:linear-gradient(135deg,#E3F2FD,#BBDEFB)">
+      <div style="font-size:2.4rem">🎬</div>
+      <div><h2>Play a flow</h2><div style="font-size:.82rem;font-weight:700;color:var(--muted)">Step-by-step stories of how the bots work</div></div>
+    </div>
+    <div class="card-body">
+      <div class="story-list">
+        ${STORIES.map((s,i) => `
+          <button class="story-item" data-story="${i}">
+            <strong>${s.title}</strong>
+            <span>${s.subtitle}</span>
+          </button>`).join('')}
+      </div>
+    </div>`;
+  overlay.classList.add('open');
+  card.querySelector('.card-close').onclick = closeCard;
+  card.querySelectorAll('.story-item').forEach(btn => {
+    btn.onclick = () => { closeCard(); startStory(+btn.dataset.story); };
+  });
+}
+
+function openChatCard(chatId) {
+  const chat = CHATS.find(c => c.id === chatId);
+  if (!chat) return;
+  const members = chat.members.map(id => byId[id]?.name || id).join(', ');
+  const overlay = document.getElementById('overlay');
+  const card = document.getElementById('card');
+  card.innerHTML = `
+    <button class="card-close">✕</button>
+    <div class="card-hero" style="background:linear-gradient(135deg,#EFEBE9,#D7CCC8)">
+      <div style="font-size:2.4rem">🔥</div>
+      <div><h2>${chat.label}</h2><div style="font-size:.82rem;font-weight:700;color:var(--muted)">Group chat · meeting table</div></div>
+    </div>
+    <div class="card-body">
+      <p>Where these bots sync day-to-day status, blockers, and next steps — then anything risky still goes to Jeevan.</p>
+      <div class="meta"><strong>Regulars</strong><span>${members}${chat.members.length===1?' (+ Jeevan when needed)':' (+ Jeevan when needed)'}</span></div>
+    </div>`;
+  overlay.classList.add('open');
+  card.querySelector('.card-close').onclick = closeCard;
+}
+
+function closeCard() {
+  document.getElementById('overlay').classList.remove('open');
+}
+
+/* ---------- stories ---------- */
+let storyActive = false;
+let storyIdx = 0;
+let storyStep = 0;
+let storyTimer = null;
+
+const STORIES = [
+  {
+    title: '🏭 Software factory',
+    subtitle: 'An issue becomes a merged PR — low-risk vs high-risk',
+    steps: [
+      { text: 'An issue lands on the Timesheet board.', sub: 'Timesheet Lead picks it up and writes a tight scope.', highlight: ['ts-lead'], packets: [], bubble: ['ts-lead','Got an issue. Scoping…'] },
+      { text: 'Lead kicks off a Cursor cloud builder agent.', sub: 'The agent opens a PR with the implementation.', highlight: ['ts-lead'], packets: [['ts-lead','g1']], bubble: ['ts-lead','Builder agent: go!'] },
+      { text: 'A reviewer agent checks the PR.', sub: 'Correctness, security, code quality.', highlight: ['ts-lead'], packets: [], bubble: ['ts-lead','Reviewer is on it.'] },
+      { text: 'Builder fixes review notes (max 2 repair rounds).', sub: 'Keeps the loop short and focused.', highlight: ['ts-lead'], packets: [], bubble: ['ts-lead','Fix round 1…'] },
+      { text: 'Verification runs — real checks, not vibes.', sub: 'Tests, audit, mobile, factory gates.', highlight: ['ts-lead','expo'], packets: [['ts-lead','expo']], bubble: ['ts-lead','Verify: green.'] },
+      { text: 'Risk gate classifies the change.', sub: 'HIGH example: auth change → must visit the Boss. (Ledger Craft LOW can auto-merge.)', highlight: ['ts-lead','jeevan','lc-lead'], packets: [['ts-lead','jeevan']], bubble: ['ts-lead','Risk: HIGH — auth path.'] },
+      { text: 'High-risk → Jeevan reviews and approves.', sub: 'Meanwhile Ledger Craft low-risk PRs may auto-merge through the same gate.', highlight: ['jeevan','ts-lead','lc-lead'], packets: [['jeevan','ts-lead'],['lc-lead','jeevan']], bubble: ['jeevan','Looks solid. Approve.'] },
+      { text: 'Deploy! The factory loop closes.', sub: 'Lead watches health. Next issue queued.', highlight: ['ts-lead','jeevan','g1'], packets: [['ts-lead','g1']], bubble: ['g1','Shipped. Nice.'] },
+    ]
+  },
+  {
+    title: '📱 Failed mobile build',
+    subtitle: 'Expo Ops spots it → hands to the right lead → fix PR',
+    steps: [
+      { text: 'EAS build fails overnight.', sub: 'Expo Ops is watching the lighthouse.', highlight: ['expo'], packets: [], bubble: ['expo','Build failed!'] },
+      { text: 'Expo Ops diagnoses the log.', sub: 'Finds the culprit and who owns the app.', highlight: ['expo'], packets: [], bubble: ['expo','Gradle pin mismatch.'] },
+      { text: 'Hands the fix to Timesheet Lead.', sub: 'Because it\'s the CleanTrack mobile app.', highlight: ['expo','ts-lead'], packets: [['expo','ts-lead']], bubble: ['expo','TS Lead — over to you.'] },
+      { text: 'Lead opens a fix PR via a cloud agent.', sub: 'Small, scoped, verified.', highlight: ['ts-lead'], packets: [['ts-lead','jeevan']], bubble: ['ts-lead','Fix PR up.'] },
+      { text: 'Jeevan approves · build goes green.', sub: 'Expo Ops confirms and notes it in the weekly report.', highlight: ['jeevan','expo','ts-lead'], packets: [['jeevan','expo']], bubble: ['expo','EAS green again.'] },
+    ]
+  },
+  {
+    title: '📣 Marketing week',
+    subtitle: 'Promo video → FB plan → Boss approves → post',
+    steps: [
+      { text: 'Promo Studio cuts a VOLT promo short.', sub: 'Hook, capture, edit, variants.', highlight: ['promo'], packets: [], bubble: ['promo','Cut ready!'] },
+      { text: 'Passes the asset to Volt Facebook Manager.', sub: 'Manager drafts a post plan — still not live.', highlight: ['promo','volt-fb'], packets: [['promo','volt-fb']], bubble: ['volt-fb','Drafting the post…'] },
+      { text: 'Plan + draft go to Jeevan.', sub: 'Nothing posts without the Boss.', highlight: ['volt-fb','jeevan'], packets: [['volt-fb','jeevan']], bubble: ['volt-fb','Needs your OK.'] },
+      { text: 'Jeevan approves the post.', sub: 'Only then does it go out.', highlight: ['jeevan','volt-fb'], packets: [['jeevan','volt-fb']], bubble: ['jeevan','Approved — post it.'] },
+      { text: 'Posted. Manager will report back later.', sub: 'Golden rule held: draft → approve → ship.', highlight: ['volt-fb','promo','volt-lead'], packets: [['volt-fb','volt-lead']], bubble: ['volt-fb','Live. I\'ll report.'] },
+    ]
+  },
+  {
+    title: '☀️ Morning brief',
+    subtitle: 'Inbox digest + price watch',
+    steps: [
+      { text: 'Auckland morning. Inbox Assistant wakes up.', sub: 'Scans Gmail — never deletes, never replies alone.', highlight: ['inbox'], packets: [], bubble: ['inbox','Sorting mail…'] },
+      { text: 'Digest lands on Jeevan\'s desk.', sub: 'What matters, what can wait, what needs a reply draft.', highlight: ['inbox','jeevan'], packets: [['inbox','jeevan']], bubble: ['inbox','Digest ready.'] },
+      { text: 'Price Watch checks Farmers Vendetta Donna.', sub: 'Daily routine — alert only at 20%+ off.', highlight: ['pricewatch'], packets: [], bubble: ['pricewatch','Still full price.'] },
+      { text: 'No deal today. Quiet alert path stays ready.', sub: 'If it drops, Jeevan gets a ping — never an auto-buy.', highlight: ['pricewatch','jeevan'], packets: [['pricewatch','jeevan']], bubble: ['jeevan','Thanks, team.'] },
+    ]
+  },
+];
+
+function clearHighlights() {
+  document.querySelectorAll('.bot.spotlight, .campfire.spotlight').forEach(el => el.classList.remove('spotlight'));
+}
+
+function startStory(idx) {
+  storyActive = true;
+  storyIdx = idx;
+  storyStep = 0;
+  document.getElementById('story-bar').classList.add('active');
+  document.getElementById('btn-stories').disabled = true;
+  showStoryStep();
+}
+
+function endStory() {
+  storyActive = false;
+  clearHighlights();
+  document.getElementById('story-bar').classList.remove('active');
+  document.getElementById('btn-stories').disabled = false;
+  if (storyTimer) clearTimeout(storyTimer);
+  toast('Story complete ✓');
+}
+
+function showStoryStep() {
+  const story = STORIES[storyIdx];
+  const step = story.steps[storyStep];
+  clearHighlights();
+  document.getElementById('story-step').textContent = String(storyStep + 1);
+  document.getElementById('story-text').textContent = step.text;
+  document.getElementById('story-sub').textContent = step.sub;
+  const nextBtn = document.getElementById('story-next');
+  nextBtn.textContent = storyStep >= story.steps.length - 1 ? 'Done ✓' : 'Next ▶';
+
+  step.highlight.forEach(id => {
+    const el = document.querySelector(`.bot[data-id="${id}"]`);
+    if (el) {
+      el.classList.add('spotlight');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+    }
+  });
+  (step.packets || []).forEach(([a,b]) => spawnPacket(a,b));
+  if (step.bubble) showBubble(step.bubble[0], step.bubble[1], 2800);
+  blip(660);
+}
+
+function nextStoryStep() {
+  const story = STORIES[storyIdx];
+  if (storyStep >= story.steps.length - 1) { endStory(); return; }
+  storyStep++;
+  showStoryStep();
+}
+
+/* ---------- sound ---------- */
+let soundOn = false;
+let audioCtx = null;
+function blip(freq = 520) {
+  if (!soundOn) return;
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = 'sine';
+    o.frequency.value = freq;
+    g.gain.value = 0.04;
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+    o.stop(audioCtx.currentTime + 0.13);
+  } catch (_) {}
+}
+
+/* ---------- toast ---------- */
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ---------- toggles ---------- */
+function bindUI() {
+  document.getElementById('enter-btn').onclick = () => {
+    document.getElementById('intro').classList.add('hide');
+    toast('Tap any bot · or Play a flow');
+    // center stage on boss
+    const wrap = document.getElementById('stage-wrap');
+    wrap.scrollLeft = (1280 - wrap.clientWidth) / 2;
+    wrap.scrollTop = 200;
+  };
+
+  document.getElementById('bots').addEventListener('click', e => {
+    const bot = e.target.closest('.bot');
+    if (!bot) return;
+    openCard(byId[bot.dataset.id]);
+  });
+  document.getElementById('bots').addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const bot = e.target.closest('.bot');
+    if (!bot) return;
+    e.preventDefault();
+    openCard(byId[bot.dataset.id]);
+  });
+
+  document.getElementById('decor').addEventListener('click', e => {
+    const cf = e.target.closest('.campfire');
+    if (cf) openChatCard(cf.dataset.chat);
+  });
+
+  document.getElementById('overlay').addEventListener('click', e => {
+    if (e.target.id === 'overlay') closeCard();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeCard(); if (storyActive) endStory(); }
+  });
+
+  document.getElementById('btn-stories').onclick = openStoriesPicker;
+  document.getElementById('story-next').onclick = nextStoryStep;
+  document.getElementById('story-skip').onclick = endStory;
+
+  const pathsBtn = document.getElementById('btn-paths');
+  pathsBtn.classList.add('on');
+  pathsBtn.onclick = () => {
+    document.body.classList.toggle('hide-paths');
+    pathsBtn.classList.toggle('on', !document.body.classList.contains('hide-paths'));
+  };
+
+  const chatsBtn = document.getElementById('btn-chats');
+  chatsBtn.classList.add('on');
+  chatsBtn.onclick = () => {
+    document.body.classList.toggle('hide-chats');
+    chatsBtn.classList.toggle('on', !document.body.classList.contains('hide-chats'));
+  };
+
+  const dayBtn = document.getElementById('btn-day');
+  dayBtn.onclick = () => {
+    const night = document.body.classList.toggle('night');
+    dayBtn.textContent = night ? '☀️ Day' : '🌙 Night';
+    dayBtn.classList.toggle('on', night);
+  };
+
+  const soundBtn = document.getElementById('btn-sound');
+  soundBtn.onclick = () => {
+    soundOn = !soundOn;
+    soundBtn.textContent = soundOn ? '🔊 On' : '🔊 Off';
+    soundBtn.classList.toggle('on', soundOn);
+    if (soundOn) blip(880);
+  };
+}
+
+/* ---------- boot ---------- */
+function boot() {
+  renderSky();
+  renderZones();
+  renderDecor();
+  renderPaths();
+  renderBots();
+  bindUI();
+
+  // intro robots
+  const intro = document.getElementById('intro-bots');
+  ['g1','ts-lead','promo'].forEach(id => {
+    const d = document.createElement('div');
+    d.innerHTML = robotSVG(byId[id], 48, 54);
+    intro.appendChild(d.firstChild);
+  });
+
+  setInterval(ambientPackets, 2200);
+  setInterval(ambientBubbles, 4800);
+
+  // fit stage on small screens via CSS zoom alternative: leave scrollable
+}
+
+boot();
+</script>
+</body>
+</html>
